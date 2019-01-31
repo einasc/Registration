@@ -13,27 +13,28 @@ def register_group():
     student_string = u""
     file_path = group_folder + "/" + group_number.get() + ".txt"
     file = io.open(file_path, "w")
-    
-    teststr = students[0][0].get()
+
     for i in range(len(students)):                
-        student_string= student_string + students[i][0].get()+u","+students[i][1].get()+u","+students[i][2].get() + u"\n"
+        student_string = student_string + students[i][0].get()+u","+students[i][1].get()+u","+students[i][2].get() + u"\n"
 
     file.write(student_string)
     file.close()
     
-    Label(screen,text = "Gruppe "+group_number.get() + " registrert", fg="green").pack()
+    Label(screen,text="Gruppe "+group_number.get() + " registrert", fg="green").pack()
     screen2.destroy()
     screen1.destroy()    
     
 def student_summary(student_num):
-    y_offset        = (student_num)*35
-    x_name          = 43
-    x_course        = 200
-    x_study         = 300
+    y_offset = student_num*35
+    x_name = 43
+    x_course = 200
+    x_study = 300
     
     Label(screen2,text = students[student_num-1][0].get(),font = default_font).place(x=x_name,y=y_offset)
     Label(screen2,text = students[student_num-1][1].get(),font = default_font).place(x=x_course,y=y_offset)
-    Label(screen2,text = students[student_num-1][2].get(),font = default_font).place(x=x_study,y=y_offset)    
+    Label(screen2,text = students[student_num-1][2].get(),font = default_font).place(x=x_study,y=y_offset)
+
+
 def verify_group():
     list_of_groups = os.listdir(group_folder)
     proceed = 1
@@ -72,6 +73,7 @@ def confirm_group():
     else:
         Button(screen2, text = error_string,font = default_font, fg = "red", width = 40, height = 1).place(x=200,y=300, anchor="center")
 
+
 def student_entry(student_num):
 
     name    = StringVar()
@@ -97,17 +99,18 @@ def student_entry(student_num):
 
     Label(screen1,text = "Fagkode",font = default_font).place(x=x_course,y=y_member_label)
     course_list = ['','TKT4116','TKT4118?','TKT4120?']
-    droplist = OptionMenu(screen1,course,*course_list)
-    droplist.config(width=15)
+    dropList = OptionMenu(screen1,course,*course_list)
+    dropList.config(width=15)
     course.set('') 
-    droplist.place(x=x_course,y=y_member_entry)        
+    dropList.place(x=x_course,y=y_member_entry)
     
     Label(screen1,text = "Studiekode",font = default_font).place(x=x_study,y=y_member_label)    
     study_entry = Entry(screen1,textvariable = study,font = default_font)
     study_entry.place(x=x_study,y=y_member_entry)    
     
-    return (name,course,study)
-            
+    return name,course,study
+
+
 def new_group():
     global screen1
     global group_number
@@ -122,8 +125,7 @@ def new_group():
     Label(screen1,text = "Gruppenummer",font = default_font).place(x=45,y=30)
     group_number_entry = Entry(screen1, textvariable = group_number,font = default_font)
     group_number_entry.place(x=45,y=55)
-    
-    
+
     student1 = student_entry(1)
     student2 = student_entry(2)
     student3 = student_entry(3)
@@ -139,7 +141,7 @@ def verify_group_number():
     error_string = ""
     group = group_number.get()
     file_name = group + ".txt"
-    if  file_name in list_of_groups:
+    if file_name in list_of_groups:
         proceed = 3
         error_string = "Gruppenummer opptatt"        
     elif not group.isdigit():
@@ -150,10 +152,12 @@ def verify_group_number():
         error_string = "Ugyldig gruppenummer"
     return proceed, error_string
 
+
 def read_group():
     print("Coming soon")
     # Les .txt fil
-       
+
+
 def show_group():
     global screen4
     screen4 = Toplevel(screen)
@@ -162,6 +166,8 @@ def show_group():
     # read_group() les inn gruppeinfo
     # Åpne student_entry() med default felt allerede fyllt inn
     # Samme procedyre som registrering
+
+
 def open_group_verify():
     list_of_groups = os.listdir(group_folder)
     proceed = 1
@@ -186,8 +192,7 @@ def open_group_verify():
     else:
         open_button.configure(text=error_string,fg = 'red')
         
-        
-  
+
 def open_group_main():
     global screen3
     global password_entry 
@@ -240,5 +245,6 @@ def main_screen():
     Label(text="").pack()
     Button(text = "Åpne gruppe",height="2",width="30",command = open_group_main).pack()
     screen.mainloop()
+
 
 main_screen()    
