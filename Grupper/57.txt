@@ -1,5 +1,0 @@
-Einar ,TKT4116,MTPROD
-Lana,TKT4118?,MTSØK
-Daniel,TKT4120?,MTWHAT
-dsd,TKT4116,ds
-sds,TKT4118?,sds
