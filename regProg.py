@@ -392,7 +392,7 @@ def open_group_main(correct_password):
     Label(screen3, text="").pack()
 
     Label(screen3, text="Skriv inn passord for å redigere").pack()
-    password_entry = Entry(screen3, textvariable=password)
+    password_entry = Entry(screen3,show="*", textvariable=password)
     password_entry.pack()
     Label(screen3, text="").pack()
     open_button = Button(screen3, text="Åpne", width=30, height=1, command=lambda: open_group_verify(correct_password, password, open_group_number, open_button))
