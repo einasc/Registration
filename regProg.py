@@ -27,7 +27,6 @@ def write_group_to_file(group_number, students, bridge_weight, bridge_capacity, 
     group_string = student_string + result_string + date_string
     group_file.write(group_string)
     group_file.close()
-#   TODO: Add date of initial write and edit
 
 
 def rolling_label(label_group):
@@ -104,7 +103,7 @@ def make_confirm_group_dialog(group_number, students, bridge_weight, bridge_capa
     if bridge_weight.get().isdigit() and (bridge_capacity.get()).isdigit():
         bridge_ratio = str(float(bridge_capacity.get()) / float(bridge_weight.get()))
     else:
-        bridge_ratio = "Error"
+        bridge_ratio = "Ugyldig"
 
     Label(screen2, text="Egenvekt: " + bridge_weight.get() + "g", font=default_font).place(x=200, y=240, anchor="w")
     Label(screen2, text="Kapasitet: " + bridge_capacity.get() + "g", font=default_font).place(x=200, y=240, anchor="e")
@@ -196,24 +195,6 @@ def new_group_dialog(default_course):
         x=45, y=610)
 
 
-def verify_group_number():
-    list_of_groups = os.listdir(group_folder)
-    proceed = 1
-    error_string = ""
-    group = group_number.get()
-    file_name = group + ".txt"
-    if file_name in list_of_groups:
-        proceed = 3
-        error_string = "Gruppenummer opptatt"
-    elif not group.isdigit():
-        proceed = 2
-        error_string = "Ugydlig gruppenummer"
-    elif int(group) > max_group_number:
-        proceed = 4
-        error_string = "Ugyldig gruppenummer"
-    return proceed, error_string
-
-
 def read_group(group_number):
     file_name = "Grupper/" + group_number + ".txt"
     group_file = io.open(file_name, "r")
@@ -256,7 +237,7 @@ def register_edited_group(group_number, students, bridge_weight, bridge_capacity
     screen6.destroy()
 
 
-def confirm_edit_group_dialog(group_number, students, bridge_weight, bridge_capacity):
+def confirm_edit_group_dialog(old_group_number, group_number, students, bridge_weight, bridge_capacity):
     global screen6
     screen6 = Toplevel(main_screen)
     screen6.title("Bekreft rediger gruppe")
@@ -264,9 +245,18 @@ def confirm_edit_group_dialog(group_number, students, bridge_weight, bridge_capa
 
     bridge_ratio = str(float(bridge_capacity.get()) / float(bridge_weight.get()))
 
+    proceed, error_string = verify_group(group_number)
+
+    if proceed == 3 and old_group_number == group_number.get():
+        proceed = 1
+        error_string = "oui "
+
     Label(screen6, text="Rediger gruppe " + group_number.get() + "?", font=default_font).pack()
-    Button(screen6, text="Bekreft", font=default_font, width=11, height=1, command=lambda: register_edited_group(group_number, students, bridge_weight, bridge_capacity, bridge_ratio)).pack()
-    Button(screen6, text="Avbryt", font=default_font, width=11, height=1, command=lambda: close_screen(screen6)).pack()
+    if proceed == 1:
+        Button(screen6, text="Bekreft", font=default_font, width=20, height=1, command=lambda: register_edited_group(group_number, students, bridge_weight, bridge_capacity, bridge_ratio)).pack()
+    else:
+        Button(screen6, text=error_string, fg='red', font=default_font, width=20, height=1).pack()
+    Button(screen6, text="Avbryt", font=default_font, width=20, height=1, command=lambda: close_screen(screen6)).pack()
 
 
 def confirm_delete_group_dialog(group_number, students, bridge_weight, bridge_capacity):
@@ -292,7 +282,44 @@ def sort_list_of_groups(list_of_groups):
     return list_of_groups
 
 
-def write_all_to_file():
+def write_course_specific_report(course):
+    list_of_groups = os.listdir(group_folder)
+    list_of_groups = sort_list_of_groups(list_of_groups)
+
+    full_string = u""
+    for group in list_of_groups:
+        group_number = group.replace(".txt", "")
+        group_list = read_group(group_number)
+        for i in range(5):
+            if group_list[i][0]:
+                if group_list[i][2] == course:
+                    full_string = full_string + group_list[i][0] + u"," + group_list[i][2] + u"\n"
+
+    file_path = "all_students.txt"
+    all_group_file = io.open(file_path, "w")
+    all_group_file.write(full_string)
+    all_group_file.close()
+
+
+def write_student_summary_file():
+    list_of_groups = os.listdir(group_folder)
+    list_of_groups = sort_list_of_groups(list_of_groups)
+
+    full_string = u""
+    for group in list_of_groups:
+        group_number = group.replace(".txt", "")
+        group_list = read_group(group_number)
+        for i in range(5):
+            if group_list[i][0]:
+                full_string = full_string + group_list[i][0] + u"," + group_list[i][2] + u"\n"
+
+    file_path = "all_students.txt"
+    all_group_file = io.open(file_path, "w")
+    all_group_file.write(full_string)
+    all_group_file.close()
+
+
+def write_group_summary_file():
     list_of_groups = os.listdir(group_folder)
     list_of_groups = sort_list_of_groups(list_of_groups)
 
@@ -303,11 +330,18 @@ def write_all_to_file():
         full_string = full_string + group_number
         for i in range(5):
             full_string = full_string + u"," + group_list[i][0] + u"," + group_list[i][2]
+        full_string = full_string + u"," + group_list[5][0] + u"," + group_list[5][1] + u"," + group_list[5][2] + u"," + group_list[6][0] + u"," + group_list[6][1]
         full_string = full_string + u"\n"
     file_path = "all_groups.txt"
     all_group_file = io.open(file_path, "w")
     all_group_file.write(full_string)
     all_group_file.close()
+
+
+def write_summary_files(button):
+    write_group_summary_file()
+    write_student_summary_file()
+    button.configure(text='Samlefil skrevet', fg='#3E9651')
 
 
 def edit_group_dialog(old_group_number):
@@ -331,6 +365,8 @@ def edit_group_dialog(old_group_number):
     for student_num in range(5):
         students.append(student_entry(screen4, student_num+1, group_list, ''))
 
+    Frame(screen4, height=1, width=800, bg="black").place(x=400, y=490, anchor="center")
+
     Label(screen4, text="Broens egenvekt [g]", font=default_font).place(x=45, y=505)
     bridge_weight_entry = Entry(screen4, textvariable=bridge_weight, font=default_font)
     bridge_weight_entry.place(x=45, y=530)
@@ -341,14 +377,19 @@ def edit_group_dialog(old_group_number):
     bridge_capacity_entry.place(x=380, y=530)
     bridge_capacity.set(group_list[5][1])
 
-    Button(screen4, text="Registrer", font=default_font, width=11, height=1, command=lambda: confirm_edit_group_dialog(group_number, students, bridge_weight, bridge_capacity)).place(
+    Frame(screen4, height=1, width=800, bg="black").place(x=400, y=580, anchor="center")
+
+    Button(screen4, text="Registrer", font=default_font, width=11, height=1, command=lambda: confirm_edit_group_dialog(old_group_number, group_number, students, bridge_weight, bridge_capacity)).place(
         x=600, y=610)
 
     Button(screen4, text="Slett gruppe", font=default_font, width=11, height=1, command=lambda: confirm_delete_group_dialog(old_group_number, students, bridge_weight, bridge_capacity)).place(
         x=45, y=610)
 
+    Button(screen4, text="Avbryt", font=default_font, width=11, height=1, command=lambda: close_screen(screen4)).place(
+        x=45, y=660)
 
-def open_group_verify(correct_password,password,open_group_number, open_button):
+
+def open_group_verify(correct_password, password, open_group_number, open_button):
     list_of_groups = os.listdir(group_folder)
     error_string = ""
     file_name = open_group_number.get() + ".txt"
@@ -379,7 +420,7 @@ def open_group_main(correct_password):
 
     screen3 = Toplevel(main_screen)
     screen3.title("Åpne gruppe")
-    screen3.geometry("300x300")
+    screen3.geometry("300x320")
 
     Label(screen3, text="Åpne gruppe").pack()
 
@@ -398,6 +439,8 @@ def open_group_main(correct_password):
     open_button = Button(screen3, text="Åpne", width=30, height=1, command=lambda: open_group_verify(correct_password, password, open_group_number, open_button))
     open_button.pack()
 
+    Button(screen3, text="Avbryt", width=30, height=1, command=lambda: close_screen(screen3)).place(x=150, y=300, anchor="center")
+
 
 def main_dialog():
     global default_font
@@ -407,13 +450,24 @@ def main_dialog():
     global label_group_register
     global label_group_edit
 
+    width_window = 300.0  # width for the Tk root
+    height_window = 500.0  # height for the Tk root
+
     default_font = ("Calibri", 12)
     group_folder = "Grupper"
     max_group_number = 100
     correct_password = "TKT"
     #TODO: Redo option
     main_screen = Tk()
-    main_screen.geometry("300x500")
+    #TODO: Centre all windows
+#    main_screen.geometry("300x500")
+    width_screen = main_screen.winfo_screenwidth()  # width of the screen
+    height_screen = main_screen.winfo_screenheight()  # height of the screen
+
+    # calculate x and y coordinates for the Tk root window
+    x = (width_screen / 2.0) - (width_window / 2.0)
+    y = (height_screen / 2.0) - (height_window / 2.0)
+    main_screen.geometry('%dx%d+%d+%d' % (width_window, height_window, x, y))
     main_screen.title("Labregistrering 1.0")
 
     label_group_register = []
@@ -438,12 +492,15 @@ def main_dialog():
 
     Frame(main_screen, height=1, width=300, bg="black").place(x=150, y=340, anchor="center")
 
-    Button(text="Skriv samlefil", height="2", width="30", command=lambda: write_all_to_file()).place(x=150, y=380, anchor="center")
+    write_file_button = Button(text="Skriv samlefil", height="2", width="30", command=lambda: write_summary_files(write_file_button, default_course.get()))
+    write_file_button.place(x=150, y=380, anchor="center")
 
     Button(text="Avslutt", height="2", width="30", command=lambda: main_screen.destroy()).place(x=150, y=450, anchor="center")
-# TODO: Fiks close button
-# TODO: Fiks kluss med endre gruppenummer (slett gammel gruppe samtidig)
-# TODO: Add close window to main screen
+
+# TODO: Fiks lukkeproblemer: Pyhton.exe has stopped working
+# TODO: Lab .exe logo !
+# TODO: Vurder antall-studenter-option
+# TODO: Fagspesifikk rapport-skriver
 
     main_screen.mainloop()
 
