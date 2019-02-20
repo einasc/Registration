@@ -116,7 +116,7 @@ def make_confirm_group_dialog(group_number, students, bridge_weight, bridge_capa
         Button(screen2, text=error_string, font=default_font, fg="red", width=40, height=1).place(x=200, y=300,anchor="center")
 
 
-def student_entry(screen, student_num, group_list, default_course):
+def student_entry(screen, student_num, group_list, default_course, default_study):
     name = StringVar()
     course = StringVar()
     study = StringVar()
@@ -135,20 +135,23 @@ def student_entry(screen, student_num, group_list, default_course):
     Label(screen, text=participant_str, font=default_font).place(x=x_name, y=y_member_number)
 
     Label(screen, text="Navn", font=default_font).place(x=x_name, y=y_member_label)
+
     name_entry = Entry(screen, textvariable=name, width=40, font=default_font)
     name_entry.place(x=x_name, y=y_member_entry)
 
     Label(screen, text="Fagkode", font=default_font).place(x=x_course, y=y_member_label)
     course_list = ['', 'TKT4116', 'TKT4123', 'TKT4126']
-    drop_list = OptionMenu(screen, course, *course_list)
-    drop_list.config(width=15)
+    course_drop_list = OptionMenu(screen, course, *course_list)
+    course_drop_list.config(width=15)
     course.set(default_course)
-    drop_list.place(x=x_course, y=y_member_entry)
+    course_drop_list.place(x=x_course, y=y_member_entry)
 
     Label(screen, text="Studiekode", font=default_font).place(x=x_study, y=y_member_label)
-    study_entry = Entry(screen, textvariable=study, font=default_font)
-    study_entry.place(x=x_study, y=y_member_entry)
-
+    study_list = ['', 'MTBYGG', 'MTENERG', 'MTING', 'MTIØT', 'MTMART', 'MTMT', 'MTPETR', 'MTPROD', 'MTTEKGEO', 'BGEOL', 'Øvrige']
+    study_drop_list = OptionMenu(screen, study, *study_list)
+    study_drop_list.config(width=15)
+    study.set(default_study)
+    study_drop_list.place(x=x_study, y=y_member_entry)
     if group_list:      # Set entries if files is opened
         name.set(group_list[student_num-1][0])
         course.set(group_list[student_num-1][1])
@@ -156,7 +159,7 @@ def student_entry(screen, student_num, group_list, default_course):
     return name, course, study
 
 
-def new_group_dialog(default_course):
+def new_group_dialog(default_course, default_study):
     global screen1
 
     group_number = StringVar()
@@ -174,7 +177,7 @@ def new_group_dialog(default_course):
     students = list()
     empty_list = list()
     for student_num in range(5):
-        students.append(student_entry(screen1, student_num+1, empty_list, default_course))
+        students.append(student_entry(screen1, student_num+1, empty_list, default_course, default_study))
 
     Frame(screen1, height=1, width=800, bg="black").place(x=400, y=490, anchor="center")
 
@@ -313,7 +316,7 @@ def write_student_summary_file():
             if group_list[i][0]:
                 full_string = full_string + group_list[i][0] + u"," + group_list[i][2] + u"\n"
 
-    file_path = "all_students.txt"
+    file_path = "all_students.csv"
     all_group_file = io.open(file_path, "w")
     all_group_file.write(full_string)
     all_group_file.close()
@@ -363,7 +366,7 @@ def edit_group_dialog(old_group_number):
 
     students = list()
     for student_num in range(5):
-        students.append(student_entry(screen4, student_num+1, group_list, ''))
+        students.append(student_entry(screen4, student_num+1, group_list, '', ''))
 
     Frame(screen4, height=1, width=800, bg="black").place(x=400, y=490, anchor="center")
 
@@ -468,7 +471,7 @@ def main_dialog():
     x = (width_screen / 2.0) - (width_window / 2.0)
     y = (height_screen / 2.0) - (height_window / 2.0)
     main_screen.geometry('%dx%d+%d+%d' % (width_window, height_window, x, y))
-    main_screen.title("Labregistrering 1.0")
+    main_screen.title("Labregistrering 1.1")
 
     label_group_register = []
     label_group_edit = []
@@ -476,29 +479,39 @@ def main_dialog():
 
     default_course = StringVar()
     course_list = ['', 'TKT4116', 'TKT4123', 'TKT4126']
-    drop_list = OptionMenu(main_screen, default_course, *course_list)
-    drop_list.config(width=15)
+    course_drop_list = OptionMenu(main_screen, default_course, *course_list)
+    course_drop_list.config(width=15)
     default_course.set('')
 
-    Label(text="Labregistrering 1.0", bg="grey", fg='#922428', width="300", height="2", font=("Calibri", 13)).pack()
+    default_study = StringVar()
+    study_list = ['', 'MTBYGG', 'MTENERG', 'MTING', 'MTIØT', 'MTMART', 'MTMT', 'MTPETR', 'MTPROD', 'MTTEKGEO', 'BGEOL', 'Øvrige']
+    study_drop_list = OptionMenu(main_screen, default_study, *study_list)
+    study_drop_list.config(width=15)
+    default_study.set('')
+
+    Label(text="Labregistrering 1.1", bg="grey", fg='#922428', width="300", height="2", font=("Calibri", 13)).pack()
     Label(text="").pack()
-    Button(text="Ny gruppe", height="2", width="30", command=lambda: new_group_dialog(default_course.get())).pack()
+    Button(text="Ny gruppe", height="2", width="30", command=lambda: new_group_dialog(default_course.get(), default_study.get())).pack()
     Label(text="").pack()
     Button(text="Åpne gruppe", height="2", width="30", command=lambda: open_group_main(correct_password)).pack()
 
-    Label(text="").pack()
-    Label(main_screen, text="Fagkode (valgfri)", font=default_font).pack()
-    drop_list.pack()
+    Frame(main_screen, height=1, width=300, bg="black").place(x=150, y=240, anchor="center")
+
+    Label(main_screen, text = "Hurtigvalg (valgfritt):", font=default_font).place(x=150, y=260, anchor="center")
+
+    Label(main_screen, text="Fagkode", font=default_font).place(x=75, y=290, anchor="center")
+    course_drop_list.place(x=75, y=320, anchor="center")
+
+    Label(main_screen, text="Studiekode", font=default_font).place(x=225, y=290, anchor="center")
+    study_drop_list.place(x=225, y=320, anchor="center")
 
     Frame(main_screen, height=1, width=300, bg="black").place(x=150, y=340, anchor="center")
 
-    write_file_button = Button(text="Skriv samlefil", height="2", width="30", command=lambda: write_summary_files(write_file_button, default_course.get()))
+    write_file_button = Button(text="Skriv samlefil", height="2", width="30", command=lambda: write_summary_files(write_file_button))
     write_file_button.place(x=150, y=380, anchor="center")
 
     Button(text="Avslutt", height="2", width="30", command=lambda: main_screen.destroy()).place(x=150, y=450, anchor="center")
 
-# TODO: Fiks lukkeproblemer: Pyhton.exe has stopped working
-# TODO: Lab .exe logo !
 # TODO: Vurder antall-studenter-option
 # TODO: Fagspesifikk rapport-skriver
 
